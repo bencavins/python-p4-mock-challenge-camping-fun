@@ -25,5 +25,53 @@ db.init_app(app)
 def home():
     return ''
 
+@app.route('/campers', methods=['GET', 'POST'])
+def get_all_campers():
+    if request.method == 'GET':
+        campers = Camper.query.all()
+        data = [c.to_dict(rules=('-signups',)) for c in campers]
+        return data, 200
+    else:
+        data = request.json
+        new_camper = Camper(
+            name=data.get('name'),
+            age=data.get('age')
+        )
+        db.session.add(new_camper)
+        db.session.commit()
+
+        return new_camper.to_dict(), 201
+
+@app.route('/campers/<int:id>', methods=['GET', 'PATCH'])
+def get_camper_by_id(id):
+    camper = Camper.query.filter(
+        Camper.id == id
+    ).one_or_none()
+
+    if camper is None:
+        return {'error': 'camper not found'}, 404
+    
+    if request.method == 'PATCH':
+        data = request.json
+        for field in data:
+            # camper.field = data[field]
+            setattr(camper, field, data[field])
+        db.session.add(camper)
+        db.session.commit()
+
+    return camper.to_dict(), 200
+
+@app.route('/activities/<int:id>', methods=['DELETE'])
+def get_activities_by_id(id):
+    activity = Activity.query.filter(
+        Activity.id == id
+    ).one_or_none()
+
+    db.session.delete(activity)
+    db.session.commit()
+
+    return {}, 200
+
+
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
