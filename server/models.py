@@ -20,9 +20,8 @@ db = SQLAlchemy(metadata=metadata)
 class Activity(db.Model, SerializerMixin):
     __tablename__ = 'activities'
 
+    # Add db columns
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    difficulty = db.Column(db.Integer)
 
     # Add relationship
     
@@ -35,15 +34,12 @@ class Activity(db.Model, SerializerMixin):
 class Camper(db.Model, SerializerMixin):
     __tablename__ = 'campers'
 
+    # Add db columns
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    age = db.Column(db.Integer)
 
     # Add relationship
     
     # Add serialization rules
-    
-    # Add validation
     
     
     def __repr__(self):
@@ -53,17 +49,13 @@ class Camper(db.Model, SerializerMixin):
 class Signup(db.Model, SerializerMixin):
     __tablename__ = 'signups'
 
+    # Add db columns
     id = db.Column(db.Integer, primary_key=True)
-    time = db.Column(db.Integer)
 
     # Add relationships
     
     # Add serialization rules
     
-    # Add validation
-    
     def __repr__(self):
-        return f'<Signup {self.id}>'
+        return f'<Signup {self.id} {self.time} {self.camper_id} {self.activity_id}>'
 
-
-# add any models you may need.

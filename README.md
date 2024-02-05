@@ -8,7 +8,6 @@ In this repo:
 
 - There is a Flask application with some features built out.
 - There is a fully built React frontend application.
-- There are tests included which you can run using `pytest -x`.
 - There is a file `mock-challenge-camping-fun.postman_collection.json` that
   contains a Postman collection of requests for testing each route you will
   implement.
@@ -16,7 +15,6 @@ In this repo:
 Depending on your preference, you can either check your API by:
 
 - Using Postman to make requests
-- Running `pytest -x` and seeing if your code passes the tests
 - Running the React application in the browser and interacting with the API via
   the frontend
 
@@ -32,26 +30,30 @@ Select `Upload Files`, navigate to this repo folder, and select
 
 ## Setup
 
-To download the dependencies for the frontend and backend, run:
+To download the dependencies for the backend, run:
 
 ```console
 pipenv install
 pipenv shell
-npm install --prefix client
 ```
 
 You can run your Flask API on [`localhost:5555`](http://localhost:5555) by
 running:
 
 ```console
-python server/app.py
+export FLASK_APP=server/app.py
+export FLASK_RUN_PORT=5555
+export FLASK_DEBUG=1
+flask run
 ```
 
 You can run your React app on [`localhost:4000`](http://localhost:4000) by
 running:
 
 ```sh
-npm start --prefix client
+cd client
+npm install
+npm start
 ```
 
 You are not being assessed on React, and you don't have to update any of the
@@ -73,7 +75,6 @@ The file `server/models.py` defines the model classes **without relationships**.
 Use the following commands to create the initial database `app.db`:
 
 ```console
-cd server
 flask db init
 flask db migrate -m 'initial model'
 flask db upgrade head
@@ -103,20 +104,6 @@ python seed.py
 
 ---
 
-## Validations
-
-Add validations to the `Camper` model:
-
-- must have a `name`
-- must have an `age` between 8 and 18
-
-Add validations to the `Signup` model:
-
-- must have a `time` between 0 and 23 (referring to the hour of day for the
-  activity)
-
----
-
 ## Routes
 
 Set up the following routes. Make sure to return JSON data in the format
@@ -131,9 +118,7 @@ instantiate the `Api` class in server/app.py.
 
 ### GET /campers
 
-Return JSON data in the format below. **Note**: you should return a JSON
-response in this format, without any additional nested data related to each
-camper's signups.
+Return JSON data in the format below.
 
 ```json
 [
@@ -150,7 +135,7 @@ camper's signups.
 ]
 ```
 
-### GET /campers/<int:id>
+### GET /campers/\<int:id\>
 
 If the `Camper` exists, return JSON data in the format below. Make sure to
 include a list of signups for the camper.
@@ -196,7 +181,7 @@ appropriate HTTP status code:
 }
 ```
 
-### PATCH /campers/:id
+### PATCH /campers/\<int:id\>
 
 This route should update an existing `Camper`. It should accept an object with
 the following properties in the body of the request:
@@ -228,15 +213,6 @@ appropriate HTTP status code:
 }
 ```
 
-If the `Camper` is **not** updated successfully (does not pass validations),
-return the following JSON data, along with the appropriate HTTP status code:
-
-```json
-{
-  "errors": ["validation errors"]
-}
-```
-
 ### POST /campers
 
 This route should create a new `Camper`. It should accept an object with the
@@ -260,13 +236,6 @@ If the `Camper` is created successfully, send back a response with the new
 }
 ```
 
-If the `Camper` is **not** created successfully, return the following JSON data,
-along with the appropriate HTTP status code.
-
-```json
-{ "errors": ["validation errors"] }
-```
-
 ### GET /activities
 
 Return JSON data in the format below:
@@ -286,12 +255,9 @@ Return JSON data in the format below:
 ]
 ```
 
-### DELETE /activities/<int:id>
+### DELETE /activities/\<int:id\>
 
-If the `Activity` exists, it should be removed from the database, along with any
-`Signup`s that are associated with it (a `Signup` belongs to an `Activity`. If
-you did not set up your models to cascade deletes, you need to delete associated
-`Signups` before the `Activity` can be deleted.
+If the `Activity` exists, it should be removed from the database.
 
 After deleting the `Activity`, return an _empty_ response body, along with the
 appropriate HTTP status code.
@@ -341,9 +307,55 @@ related to the new `Signup`:
 }
 ```
 
+---
+
+## Stretch Goals
+
+### Configure Cascading Deletes
+
+Since an `Activity` belongs to a `Signup`, configure the model to cascade deletes.
+
+When an `Activity` is deleted, also delete any `Signup`s that are associated with it. 
+If you did not set up your models to cascade deletes, you need to delete associated `Signup`s
+before the `Activity` can be deleted.
+
+### Validations
+
+Add validations to the `Camper` model:
+
+- must have a `name`
+- must have an `age` between 8 and 18
+
+Add validations to the `Signup` model:
+
+- must have a `time` between 0 and 23 (referring to the hour of day for the
+  activity)
+
+### Validation Checking in PATCH /campers/\<int:id\>
+
+If the `Camper` is **not** updated successfully (does not pass validations),
+return the following JSON data, along with the appropriate HTTP status code:
+
+```json
+{
+  "errors": "appropriate error message"
+}
+```
+
+### Validation Checking in POST /campers
+
+If the `Camper` is **not** created successfully, return the following JSON data,
+along with the appropriate HTTP status code.
+
+```json
+{ "errors": "appropriate error message" }
+```
+
+### Validation Checking in POST /signups
+
 If the `Signup` is **not** created successfully, return the following JSON data,
 along with the appropriate HTTP status code:
 
 ```json
-{ "errors": ["validation errors"] }
+{ "errors": "appropriate error message" }
 ```
