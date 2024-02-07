@@ -33,10 +33,13 @@ def all_campers():
     elif request.method == 'POST':
         json_data = request.get_json()
 
-        new_camper = Camper(
-            name=json_data.get('name'),
-            age=json_data.get('age')
-        )
+        try:
+            new_camper = Camper(
+                name=json_data.get('name'),
+                age=json_data.get('age')
+            )
+        except ValueError as e:
+            return {'error': str(e)}, 400
 
         db.session.add(new_camper)
         db.session.commit()
@@ -55,8 +58,11 @@ def camper_by_id(id):
     elif request.method == 'PATCH':
         json_data = request.get_json()
 
-        for field in json_data:
-            setattr(camper, field, json_data[field])
+        try:
+            for field in json_data:
+                setattr(camper, field, json_data[field])
+        except ValueError as e:
+            return {'error': str(e)}, 400
 
         db.session.add(camper)
         db.session.commit()
@@ -84,11 +90,14 @@ def activity_by_id(id):
 def all_signups():
     json_data = request.get_json()
 
-    new_signup = Signup(
-        time=json_data.get('time'),
-        camper_id=json_data.get('camper_id'),
-        activity_id=json_data.get('activity_id')
-    )
+    try:
+        new_signup = Signup(
+            time=json_data.get('time'),
+            camper_id=json_data.get('camper_id'),
+            activity_id=json_data.get('activity_id')
+        )
+    except ValueError as e:
+        return {'error': str(e)}, 400
 
     db.session.add(new_signup)
     db.session.commit()
