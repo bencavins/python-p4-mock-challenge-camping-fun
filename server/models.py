@@ -25,8 +25,14 @@ class Activity(db.Model, SerializerMixin):
     difficulty = db.Column(db.Integer)
 
     # Add relationship
+    signups = db.relationship(
+        'Signup', 
+        back_populates='activity',
+        cascade='all, delete-orphan'
+    )
     
     # Add serialization rules
+    serialize_rules = ['-signups.activity']
     
     def __repr__(self):
         return f'<Activity {self.id}: {self.name}>'
@@ -40,11 +46,25 @@ class Camper(db.Model, SerializerMixin):
     age = db.Column(db.Integer)
 
     # Add relationship
+    signups = db.relationship('Signup', back_populates='camper')
     
     # Add serialization rules
+    serialize_rules = ['-signups.camper']
     
     # Add validation
-    
+    @validates('name')
+    def validates_name(self, key, new_name):
+        if not new_name:
+            raise ValueError('name is required')
+        else:
+            return new_name
+
+    @validates('age')
+    def validates_age(self, key, new_age):
+        if not (8 <= new_age <= 18):
+            raise ValueError('age must be between 8 and 18')
+        else:
+            return new_age
     
     def __repr__(self):
         return f'<Camper {self.id}: {self.name}>'
@@ -55,12 +75,23 @@ class Signup(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     time = db.Column(db.Integer)
+    camper_id = db.Column(db.Integer, db.ForeignKey('campers.id'))
+    activity_id = db.Column(db.Integer, db.ForeignKey('activities.id'))
 
     # Add relationships
+    activity = db.relationship('Activity', back_populates='signups')
+    camper = db.relationship('Camper', back_populates='signups')
     
     # Add serialization rules
+    serialize_rules = ['-activity.signups', '-camper.signups']
     
     # Add validation
+    @validates('time')
+    def validates_time(self, key, new_time):
+        if not (0 <= new_time <= 23):
+            raise ValueError('time must be between 0 and 23')
+        else:
+            return new_time
     
     def __repr__(self):
         return f'<Signup {self.id}>'
