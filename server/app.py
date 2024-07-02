@@ -25,10 +25,24 @@ db.init_app(app)
 def home():
     return ''
 
-@app.route('/campers', methods=['GET'])
+@app.route('/campers', methods=['GET', 'POST'])
 def all_campers():
-    campers = Camper.query.all()
-    return [c.to_dict(rules=['-signups']) for c in campers], 200
+    if request.method == 'GET':
+        campers = Camper.query.all()
+        return [c.to_dict(rules=['-signups']) for c in campers], 200
+    elif request.method == 'POST':
+        data = request.get_json()
+        try:
+            new_camper = Camper(
+                name=data.get('name'),
+                age=data.get('age')
+            )
+        except ValueError:
+            return {'error': 'validation failed'}, 400
+        db.session.add(new_camper)
+        db.session.commit()  # right here is where id gets populated
+
+        return new_camper.to_dict(rules=['-signups']), 201
 
 @app.route('/campers/<int:id>', methods=['GET', 'PATCH'])
 def camper_by_id(id):
@@ -54,6 +68,47 @@ def camper_by_id(id):
         db.session.commit()
 
         return camper.to_dict(rules=['-signups']), 200
+    
+
+@app.route('/activities', methods=['GET'])
+def all_activities():
+    return [act.to_dict(rules=['-signups']) for act in Activity.query], 200
+
+@app.route('/activities/<int:id>', methods=['DELETE'])
+def activity_by_id(id):
+    act = Activity.query.filter(Activity.id == id).first()
+
+    if not act:
+        return {"error": "Activity not found"}, 404
+    
+    # we can manually delete all the "orphan" signups
+    # signups = Signup.query.filter(Signup.activity_id == act.id).all()
+    # for s in signups:
+    #     db.session.delete(s)
+    
+    db.session.delete(act)
+    db.session.commit()
+
+    return {}, 204
+
+@app.route('/signups', methods=['POST'])
+def all_signups():
+    data = request.get_json()
+
+    try:
+        new_signup = Signup(
+            camper_id = data.get('camper_id'),
+            activity_id = data.get('activity_id'),
+            time = data.get('time')
+        )
+    except ValueError:
+        return {'error': 'validation failed'}, 400
+
+    db.session.add(new_signup)
+    db.session.commit()
+
+    return new_signup.to_dict(), 201
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
